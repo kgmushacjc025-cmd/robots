@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/za/co/wethinkcode/robots/server/commands/StateCommand.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/za/co/wethinkcode/robots/server/commands/StateCommand.java" />
+              <option name="originalContent" value="package za.co.wethinkcode.robots.server.commands;&#10;&#10;import com.fasterxml.jackson.databind.JsonNode;&#10;import com.fasterxml.jackson.databind.node.ObjectNode;&#10;import za.co.wethinkcode.robots.server.world.Robot;&#10;import za.co.wethinkcode.robots.server.world.World;&#10;&#10;public class StateCommand extends ClientCommands {&#10;    private final String robotName;&#10;    private final World gameWorld;&#10;&#10;    public StateCommand(String robotName, World gameWorld) {&#10;        super(robotName, gameWorld);&#10;        this.robotName = robotName;&#10;        this.gameWorld = gameWorld;&#10;    }&#10;&#10;    @Override&#10;    public JsonNode execute() {&#10;        Robot robot = gameWorld.getRobot(robotName);&#10;        if (robot == null) {&#10;            return new ErrorResponse(&quot;No robot provided for state&quot;, robotName, getWorld()).execute();&#10;        }&#10;        ObjectNode stateResponse = getMapper().createObjectNode();&#10;        stateResponse.set(&quot;state&quot;, new StateNode(robotName, gameWorld).execute());&#10;        stateResponse.put(&quot;result&quot;, &quot;OK&quot;);&#10;        return stateResponse;&#10;    }&#10;}" />
+              <option name="updatedContent" value="package za.co.wethinkcode.robots.server.commands;&#10;&#10;import com.fasterxml.jackson.databind.JsonNode;&#10;import com.fasterxml.jackson.databind.node.ObjectNode;&#10;import za.co.wethinkcode.robots.server.world.Robot;&#10;import za.co.wethinkcode.robots.server.world.World;&#10;&#10;public class StateCommand extends ClientCommands {&#10;    private final String robotName;&#10;    private final World gameWorld;&#10;&#10;    public StateCommand(String robotName, World gameWorld) {&#10;        super(robotName, gameWorld);&#10;        this.robotName = robotName;&#10;        this.gameWorld = gameWorld;&#10;    }&#10;&#10;    @Override&#10;    public JsonNode execute() {&#10;        Robot robot = gameWorld.getRobot(robotName);&#10;        if (robot == null) {&#10;            return new ErrorResponse(&quot;No robot provided for state&quot;, robotName, getWorld()).execute();&#10;        }&#10;        ObjectNode stateResponse = getMapper().createObjectNode();&#10;        stateResponse.set(&quot;state&quot;, new StateNode(robotName, gameWorld).execute());&#10;        stateResponse.put(&quot;result&quot;, &quot;OK&quot;);&#10;        return stateResponse;&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -1,0 +1,65 @@
+{
+  "world": {
+    "size": 20
+  },
+  "makes": {
+    "Sniper": {
+      "shots": 15,
+      "shields": 5,
+      "maxshot": 3
+    },
+    "Tank": {
+      "shots": 5,
+      "shields": 15,
+      "maxshot": 1
+    },
+    "Defender": {
+      "shots": 5,
+      "shields": 5,
+      "maxshot": 2
+    }
+  },
+  "obstacles": {
+    "defaultPlacement": false,
+    "types": [
+      {
+        "type": "pit",
+        "count": 2,
+        "size": 1,
+        "positions": []
+      },
+      {
+        "type": "lake",
+        "count": 1,
+        "size": 3,
+        "positions": [
+          {
+            "topLeft":    { "x": -4, "y": 5 },
+            "topRight":   { "x": -1, "y": 5 },
+            "bottomLeft": { "x": -4, "y": 2 },
+            "bottomRight":{ "x": -1, "y": 2 }
+          }
+        ]
+      },
+      {
+        "type": "mountain",
+        "count": 2,
+        "size": 2,
+        "positions": [
+          {
+            "topLeft":    { "x": 1,  "y": -1 },
+            "topRight":   { "x": 3,  "y": -1 },
+            "bottomLeft": { "x": 1,  "y": -3 },
+            "bottomRight":{ "x": 3,  "y": -3 }
+          },
+          {
+            "topLeft":    { "x": -6, "y": -4 },
+            "topRight":   { "x": -4, "y": -4 },
+            "bottomLeft": { "x": -6, "y": -6 },
+            "bottomRight":{ "x": -4, "y": -6 }
+          }
+        ]
+      }
+    ]
+  }
+}
