@@ -38,6 +38,10 @@ public abstract class ClientCommands implements Command {
         return this.argument;
     }
 
+    public String getRobotName() {
+        return this.robotName;
+    }
+
     /** Get the ObjectMapper for building JSON responses */
     protected ObjectMapper getMapper() {
         return this.mapper;
@@ -51,18 +55,17 @@ public abstract class ClientCommands implements Command {
     /**
      * Factory method to create a concrete command object from a JSON request.
      *
-     * @param request the JSON node containing "command" and optional "arguments"
+     * @param request   JSON node containing "command" and optional "arguments"
      * @param gameWorld reference to the world object
      * @param robotName the name of the robot, null if not yet launched
      * @return a concrete Command object or ErrorResponse if invalid
      */
     public static Command create(JsonNode request, World gameWorld, String robotName) {
 
-        // validate request and "command" field
+        // Validate request and "command" field
         if (request == null || !request.has("command") || request.get("command").isNull()) {
             return new ErrorResponse(
-                    "Missing or invalid 'command' field. " +
-                            "If you're unsure what to do, type 'help' to see available commands.",
+                    "Missing or invalid 'command' field. Type 'help' to see available commands.",
                     robotName,
                     gameWorld
             );
@@ -71,7 +74,7 @@ public abstract class ClientCommands implements Command {
         String command = request.get("command").asText().toLowerCase();
         JsonNode arguments = request.has("arguments") ? request.get("arguments") : null;
 
-        // check robot launch state
+        // Check robot launch state
         if (robotName == null &&
                 !command.equals("launch") &&
                 !command.equals("quit") &&
@@ -85,41 +88,31 @@ public abstract class ClientCommands implements Command {
 
         if (robotName != null && command.equals("launch")) {
             return new ErrorResponse(
-                    "You’ve already got a robot running. Go ahead and run other commands!",
+                    "You already have a robot running. Use other commands instead!",
                     robotName,
                     gameWorld
             );
         }
 
-        switch (command) {
-            case "quit":
-                return new ClientQuitCommand(robotName, gameWorld);
-            case "state":
-                return new StateCommand(robotName, gameWorld);
-            case "look":
-                return new LookCommand(robotName, gameWorld);
-            case "launch":
-                return new LaunchCommand(robotName, arguments, gameWorld);
-            case "forward":
-                return new ForwardCommand(robotName, arguments, gameWorld);
-            case "back":
-                return new BackCommand(robotName, arguments, gameWorld);
-            case "left":
-                return new LeftCommand(robotName, arguments, gameWorld);
-            case "right":
-                return new RightCommand(robotName, arguments, gameWorld);
-            case "help":
-                return new HelpCommand(robotName, gameWorld);
-            case "fire":
-                return new FireCommand(robotName, arguments, gameWorld);
-
-            default:
-                return new ErrorResponse(
-                        "Unsupported robot command: '" + command + "'. " +
-                                "If you're unsure what to do, type 'help' to see available commands.",
-                        robotName,
-                        gameWorld
-                );
-        }
+        // Map commands to classes
+        return switch (command) {
+            case "quit" -> new ClientQuitCommand(robotName, gameWorld);
+            case "state" -> new StateCommand(robotName, gameWorld);
+            case "look" -> new LookCommand(robotName, gameWorld);
+            case "launch" -> new LaunchCommand(robotName, arguments, gameWorld);
+            case "forward" -> new ForwardCommand(robotName, arguments, gameWorld);
+            case "back" -> new BackCommand(robotName, arguments, gameWorld);
+            case "left" -> new LeftCommand(robotName, arguments, gameWorld);
+            case "right" -> new RightCommand(robotName, arguments, gameWorld);
+            case "help" -> new HelpCommand(robotName, gameWorld);
+            case "fire" -> new FireCommand(robotName, arguments, gameWorld);
+            case "repair" -> new RepairCommand(robotName, gameWorld);
+            case "reload" -> new ReloadCommand(robotName, gameWorld);
+            default -> new ErrorResponse(
+                    "Unsupported robot command: '" + command + "'. Type 'help' to see available commands.",
+                    robotName,
+                    gameWorld
+            );
+        };
     }
 }

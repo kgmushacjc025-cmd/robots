@@ -14,16 +14,25 @@ import java.util.*;
 public class WorldConfig {
 
     private final int size;
+    private final int visibility;
+    private final int repairTime;
+    private final int reloadTime;
     private final Map<String, int[]> makes;
     private final List<Obstacle> obstacles;
 
-    public WorldConfig(int size, Map<String, int[]> makes, List<Obstacle> obstacles) {
+    public WorldConfig(int size, int visibility, int repairTime, int reloadTime, Map<String, int[]> makes, List<Obstacle> obstacles) {
         this.size = size;
+        this.visibility = visibility;
+        this.repairTime = repairTime;
+        this.reloadTime = reloadTime;
         this.makes = makes;
         this.obstacles = obstacles;
     }
 
     public int getSize() { return size; }
+    public int getVisibility() { return visibility; }
+    public int getRepairTime() { return repairTime; }
+    public int getReloadTime() { return reloadTime; }
     public Map<String, int[]> getMakes() { return makes; }
     public List<Obstacle> getObstacles() { return obstacles; }
 
@@ -38,11 +47,22 @@ public class WorldConfig {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(path));
 
-        int size = root.path("world").path("size").asInt();
+        JsonNode worldNode = root.path("world");
+        int size = worldNode.path("size").asInt();
+
+        // Load visibility, clamp to world size if necessary
+        int visibility = worldNode.path("visibility").asInt(20); // default 20
+        if (visibility > size) {
+            visibility = size;
+        }
+
+        int repairTime = worldNode.path("repairTime").asInt(3);  // default 3
+        int reloadTime = worldNode.path("reloadTime").asInt(5);  // default 5
+
         Map<String, int[]> makes = parseMakes(root.path("makes"));
         List<Obstacle> obstacles = parseObstacles(root.path("obstacles"), size);
 
-        return new WorldConfig(size, makes, obstacles);
+        return new WorldConfig(size, visibility, repairTime, reloadTime, makes, obstacles);
     }
 
     /**

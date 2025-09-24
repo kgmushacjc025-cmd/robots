@@ -1,6 +1,9 @@
 {
   "world": {
-    "size": 20
+    "size": 20,
+    "visibility": 20,
+    "repairTime": 3,
+    "reloadTime": 5
   },
   "makes": {
     "Sniper": {

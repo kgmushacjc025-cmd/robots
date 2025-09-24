@@ -54,14 +54,15 @@ public class LookCommand extends ClientCommands {
         List<ObjectInView> objects = new ArrayList<>();
         int x = robot.getX();
         int y = robot.getY();
+        int visibility = gameWorld.getVisibility(); // use world visibility
 
         for (String direction : new String[]{"NORTH", "SOUTH", "EAST", "WEST"}) {
-            objects.addAll(lookInDirection(x, y, direction));
+            objects.addAll(lookInDirection(x, y, direction, visibility));
         }
         return objects;
     }
 
-    private List<ObjectInView> lookInDirection(int x, int y, String direction) {
+    private List<ObjectInView> lookInDirection(int x, int y, String direction, int visibility) {
         List<ObjectInView> objects = new ArrayList<>();
         int width = gameWorld.worldWidth();
         int height = gameWorld.worldHeight();
@@ -78,7 +79,7 @@ public class LookCommand extends ClientCommands {
         }
 
         int distance = 1;
-        while (true) {
+        while (distance <= visibility) { // stop at visibility distance
             int newX = x + dx * distance;
             int newY = y + dy * distance;
 

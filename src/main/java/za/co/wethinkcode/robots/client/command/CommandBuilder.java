@@ -63,6 +63,8 @@ public class CommandBuilder {
                 case "quit":
                 case "help":
                 case "fire":
+                case "reload":
+                case "repair":
                     if (parts.length != 1) {
                         return new ErrorState("Usage: " + command).toJson();
                     }

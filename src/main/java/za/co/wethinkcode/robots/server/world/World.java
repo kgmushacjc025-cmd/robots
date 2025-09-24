@@ -37,12 +37,43 @@ public class World {
     }
 
     /**
+     * Returns the world's visibility range.
+     *
+     * @return visibility distance.
+     */
+    public int getVisibility() {
+        return config.getVisibility();
+    }
+
+    /**
+     * Returns the repair time for robots in seconds.
+     *
+     * @return repair time.
+     */
+    public int getRepairTime() {
+        return config.getRepairTime();
+    }
+
+    /**
+     * Returns the reload time for robots in seconds.
+     *
+     * @return reload time.
+     */
+    public int getReloadTime() {
+        return config.getReloadTime();
+    }
+
+    /**
      * Attempts to add a robot at a random valid position in the world.
      *
      * @param robot The robot to add.
      * @return true if added successfully; false if the world is full or no valid position found.
      */
     public boolean addRobot(Robot robot){
+        // Set robot's reload and repair times from world config
+        robot.setRepairTime(getRepairTime());
+        robot.setReloadTime(getReloadTime());
+
         Random random = new Random();
         int maxAttempts = width * height;
         while (maxAttempts-- > 0) {
@@ -189,7 +220,6 @@ public class World {
     public List<Robot> getRobotsInWorld(){
         return robots;
     }
-
 
     public List<Obstacle> getWorldObstacles(){
         return obstacles;
