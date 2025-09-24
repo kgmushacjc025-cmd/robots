@@ -5,14 +5,31 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import za.co.wethinkcode.robots.server.world.World;
 
+/**
+ * Handles the "help" command for a robot.
+ * Returns a list of all available commands with descriptions.
+ * Can be called before a robot is launched.
+ */
 public class HelpCommand extends ClientCommands {
     private final String robotName;
 
+    /**
+     * Constructor for HelpCommand.
+     *
+     * @param robotName the name of the robot (can be null if robot not yet launched)
+     * @param gameWorld reference to the world
+     */
     public HelpCommand(String robotName, World gameWorld) {
         super(robotName, gameWorld);
         this.robotName = robotName;
     }
 
+    /**
+     * Executes the help command.
+     * Produces a JSON response listing all available commands and their descriptions.
+     *
+     * @return JSON node containing the list of commands and a message
+     */
     @Override
     public JsonNode execute() {
         ObjectNode response = getMapper().createObjectNode();
@@ -21,12 +38,9 @@ public class HelpCommand extends ClientCommands {
 
         ArrayNode commands = data.putArray("commands");
 
-        // Always include launch first
         commands.addObject()
-                .put("command", "launch <make> <name> [<shields>]")
+                .put("command", "launch <make> <name>")
                 .put("description", "Launch a new robot into the world. (Required before using other commands)");
-
-
         commands.addObject().put("command", "forward <steps>")
                 .put("description", "Move the robot forward by the given number of steps.");
         commands.addObject().put("command", "back <steps>")
@@ -43,7 +57,6 @@ public class HelpCommand extends ClientCommands {
                 .put("description", "Fire the robot's gun in the direction it is facing.");
         commands.addObject().put("command", "quit")
                 .put("description", "Remove the robot from the world and disconnect.");
-
 
         data.put("message", "Available commands:");
         return response;

@@ -3,6 +3,9 @@ package za.co.wethinkcode.robots.server.world;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents a 2D coordinate in the world.
+ */
 public class Position {
     private final int x;
     private final int y;
@@ -15,13 +18,19 @@ public class Position {
     public int getX() { return x; }
     public int getY() { return y; }
 
+    /**
+     * Checks if this position is inside world bounds.
+     */
     public boolean isInsideWorld(int width, int height) {
-        return !(this.x < -(width / 2) || this.x > width / 2 ||
-                this.y < -(height / 2) || this.y > height / 2);
+        int halfW = width / 2;
+        int halfH = height / 2;
+        return x >= -halfW && x <= halfW && y >= -halfH && y <= halfH;
     }
 
+    /**
+     * Validates if this position is free from obstacles and other robots.
+     */
     public boolean isPositionValid(int width, int height, List<Obstacle> obstacles, List<Robot> robots) {
-        // Compute inclusive min/max for a centered grid
         int halfW = width / 2;
         int minX = -halfW;
         int maxX = (width % 2 == 0) ? halfW - 1 : halfW;
@@ -30,21 +39,16 @@ public class Position {
         int minY = -halfH;
         int maxY = (height % 2 == 0) ? halfH - 1 : halfH;
 
-        // Out of bounds?
-        if (x < minX || x > maxX || y < minY || y > maxY) {
-            return false;
-        }
+        if (x < minX || x > maxX || y < minY || y > maxY) return false;
 
         if (obstacles != null) {
             for (Obstacle o : obstacles) {
-                if (!o.blocksPosition(x, y)) continue;
-                if (!o.canWalkThrough()) {
+                if (o.blocksPosition(x, y) && !o.canWalkThrough()) {
                     return false;
                 }
             }
         }
 
-        // Robots: position is invalid if any **alive** robot occupies it
         if (robots != null) {
             for (Robot r : robots) {
                 if (!"DEAD".equals(r.getStatus()) && r.getX() == x && r.getY() == y) {

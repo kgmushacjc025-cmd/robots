@@ -1,5 +1,8 @@
 package za.co.wethinkcode.robots.server.world;
 
+/**
+ * Represents a robot in the world.
+ */
 public class Robot {
     private final String name;
     private int x, y;
@@ -17,8 +20,7 @@ public class Robot {
         this.shots = shots;
         this.maxShots = maxShots;
 
-
-        // Map number of starting shots to max shot distance
+        // Map maxShots to maxShotDistance
         this.maxShotDistance = switch (maxShots) {
             case 1 -> 5;
             case 2 -> 4;
@@ -46,12 +48,12 @@ public class Robot {
     public void damage(int shotsFired) {
         if (shields > 0) {
             shields -= shotsFired;
+            if (shields < 0) shields = 0;
         }
         if (shields <= 0) {
             status = "DEAD";
         }
     }
-
 
     public String getName() { return name; }
     public int getX() { return x; }
@@ -61,19 +63,16 @@ public class Robot {
     public int getShots() { return shots; }
     public String getStatus() { return status; }
     public int getMaxShotDistance() { return maxShotDistance; }
-    public void setDirection(String dir){
-        this.direction = dir;
-    }
-    public  int getMaxShots(){return maxShots;}
-    public Position getPosition(){
+    public int getMaxShots() { return maxShots; }
+
+    public void setDirection(String dir) { this.direction = dir; }
+    public void setStatus(String newStatus) { this.status = newStatus; }
+
+    public Position getPosition() {
         return new Position(x, y);
     }
-    public void setStatus(String newStatus){
-        this.status = newStatus;
-    }
+
     public boolean canFire() {
         return shots > 0 && maxShotDistance > 0 && !"DEAD".equals(status);
     }
-
-
 }

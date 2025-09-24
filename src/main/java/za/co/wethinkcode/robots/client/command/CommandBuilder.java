@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * This is the main CommandBuilder
+ */
 public class CommandBuilder {
     private final ObjectMapper mapper;
 
@@ -12,6 +15,10 @@ public class CommandBuilder {
         this.mapper = new ObjectMapper();
     }
 
+    /**
+     * build a JSON command from user input
+     * @param input user typed string
+     */
     public JsonNode buildCommand(String input) {
         String[] parts = input.trim().split("\\s+");
         if (parts.length == 0) {
@@ -35,18 +42,12 @@ public class CommandBuilder {
                     break;
 
                 case "forward":
-                    if (parts.length == 2) {
-                        ForwardCommandBuilder forwardBuilder = new ForwardCommandBuilder();
-                        return forwardBuilder.build(parts);
-                    }
-                    return new ErrorState("Usage: forward <steps>").toJson();
+                    ForwardCommandBuilder forwardBuilder = new ForwardCommandBuilder();
+                    return forwardBuilder.build(parts);
 
                 case "back":
-                    if (parts.length == 2) {
-                        BackCommandBuilder backBuilder = new BackCommandBuilder();
-                        return backBuilder.build(parts);
-                    }
-                    return new ErrorState("Usage: back <steps>").toJson();
+                    BackCommandBuilder backBuilder = new BackCommandBuilder();
+                    return backBuilder.build(parts);
 
                 case "left":
                     LeftCommandBuilder leftBuilder = new LeftCommandBuilder();
@@ -69,9 +70,7 @@ public class CommandBuilder {
                     break;
 
                 default:
-                    return new ErrorState(
-                            "Unknown command: '" + command
-                    ).toJson();
+                    return new ErrorState("Unknown command: '" + command + "'").toJson();
             }
 
             request.set("arguments", arguments);

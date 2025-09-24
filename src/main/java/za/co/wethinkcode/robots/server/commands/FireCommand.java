@@ -7,17 +7,37 @@ import za.co.wethinkcode.robots.server.world.World;
 
 import java.util.List;
 
+/**
+ * Handles the "fire" command for a robot.
+ * Checks if the robot can fire, calculates distance, and applies damage to any hit robot.
+ */
 public class FireCommand extends ClientCommands {
     private final String robotName;
 
+    /**
+     * Constructor for FireCommand.
+     *
+     * @param robotName the name of the robot firing
+     * @param arguments unused for now (can hold future options)
+     * @param gameWorld reference to the world
+     */
     public FireCommand(String robotName, JsonNode arguments, World gameWorld) {
         super(robotName, gameWorld);
         this.robotName = robotName;
     }
 
+    /**
+     * Executes the fire command.
+     * Determines if the robot can fire, calculates trajectory, updates hit robot if any,
+     * and returns detailed info including shots used, distance traveled, and outcome.
+     *
+     * @return JSON node with fire result and updated state
+     */
     @Override
     public JsonNode execute() {
         Robot shooter = getWorld().getRobot(robotName);
+
+        // check if robot can fire
         if (shooter == null || !shooter.canFire()) {
             return makeErrorResponse("Cannot fire: no shots remaining. Consider reloading.");
         }
@@ -56,7 +76,7 @@ public class FireCommand extends ClientCommands {
 
         List<Robot> robots = getWorld().getRobotsInWorld();
 
-        // Scan each coordinate along direction up to maxDistance
+        // trace shot along the path
         for (int i = 1; i <= maxDistance; i++) {
             x += dx;
             y += dy;
@@ -76,6 +96,7 @@ public class FireCommand extends ClientCommands {
             if (hit) break;
         }
 
+        // prepare result JSON
         ObjectNode result = getMapper().createObjectNode();
         result.put("result", "OK");
 
@@ -94,11 +115,18 @@ public class FireCommand extends ClientCommands {
         data.put("remainingShots", shooter.getShots());
         data.put("outcome", hit ? "Hit " + targetHit : "Missed");
 
+        // add robot state after firing
         result.set("state", new StateNode(robotName, getWorld()).execute());
 
         return result;
     }
 
+    /**
+     * Calculate the number of shots consumed based on distance.
+     *
+     * @param distance distance of the shot
+     * @return shots to consume
+     */
     private int calculateShotsConsumed(int distance) {
         return switch (distance) {
             case 5 -> 1;
@@ -110,6 +138,12 @@ public class FireCommand extends ClientCommands {
         };
     }
 
+    /**
+     * Create a standard error response JSON.
+     *
+     * @param message error message to return
+     * @return JSON node with error
+     */
     private JsonNode makeErrorResponse(String message) {
         ObjectNode response = getMapper().createObjectNode();
         response.put("result", "ERROR");

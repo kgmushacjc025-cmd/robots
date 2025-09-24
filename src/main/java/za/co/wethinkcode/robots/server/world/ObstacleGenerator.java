@@ -4,15 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Generates obstacles for the world.
+ * Ensures obstacles do not overlap and are placed randomly.
+ */
 public class ObstacleGenerator {
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
+    /**
+     * Calculates the number of obstacles of each type based on world area.
+     */
     public static int obstaclesPerType(int width, int height) {
         int area = width * height;
         int total = area / 33;
-        return total / 3;
+        return total / 3; // Divide equally among three types
     }
 
+    /**
+     * Generates a list of obstacles for the world.
+     */
     public static List<Obstacle> generate(int worldWidth, int worldHeight) {
         List<Obstacle> obstacles = new ArrayList<>();
         int count = obstaclesPerType(worldWidth, worldHeight);
@@ -26,6 +36,9 @@ public class ObstacleGenerator {
         return obstacles;
     }
 
+    /**
+     * Attempts to place an obstacle without colliding with existing ones.
+     */
     public static void placeObstacle(Obstacle.ObstacleType type, int width, int height,
                                      List<Obstacle> existing, int obstacleSize) {
         int tries = 0;
@@ -43,6 +56,9 @@ public class ObstacleGenerator {
         }
     }
 
+    /**
+     * Checks if a new obstacle collides with any existing obstacles.
+     */
     public static boolean collides(Obstacle newObstacle, List<Obstacle> obstacles) {
         for (Obstacle existing : obstacles) {
             if (overlap(newObstacle, existing)) {
@@ -52,23 +68,27 @@ public class ObstacleGenerator {
         return false;
     }
 
-    public static boolean overlap(Obstacle firstObstacle, Obstacle secondObstacle) {
-        int firstLeftEdge = Math.min(firstObstacle.getTopLeftX(), firstObstacle.getBottomRightX());
-        int firstRightEdge = Math.max(firstObstacle.getTopLeftX(), firstObstacle.getBottomRightX());
-        int firstTopEdge = Math.max(firstObstacle.getTopLeftY(), firstObstacle.getBottomRightY());
-        int firstBottomEdge = Math.min(firstObstacle.getTopLeftY(), firstObstacle.getBottomRightY());
+    /**
+     * Checks if two obstacles overlap.
+     */
+    public static boolean overlap(Obstacle first, Obstacle second) {
+        int firstLeft = Math.min(first.getTopLeftX(), first.getBottomRightX());
+        int firstRight = Math.max(first.getTopLeftX(), first.getBottomRightX());
+        int firstTop = Math.max(first.getTopLeftY(), first.getBottomRightY());
+        int firstBottom = Math.min(first.getTopLeftY(), first.getBottomRightY());
 
-        int secondLeftEdge = Math.min(secondObstacle.getTopLeftX(), secondObstacle.getBottomRightX());
-        int secondRightEdge = Math.max(secondObstacle.getTopLeftX(), secondObstacle.getBottomRightX());
-        int secondTopEdge = Math.max(secondObstacle.getTopLeftY(), secondObstacle.getBottomRightY());
-        int secondBottomEdge = Math.min(secondObstacle.getTopLeftY(), secondObstacle.getBottomRightY());
+        int secondLeft = Math.min(second.getTopLeftX(), second.getBottomRightX());
+        int secondRight = Math.max(second.getTopLeftX(), second.getBottomRightX());
+        int secondTop = Math.max(second.getTopLeftY(), second.getBottomRightY());
+        int secondBottom = Math.min(second.getTopLeftY(), second.getBottomRightY());
 
-        return !(firstRightEdge < secondLeftEdge ||
-                firstLeftEdge > secondRightEdge ||
-                firstBottomEdge > secondTopEdge ||
-                firstTopEdge < secondBottomEdge);
+        return !(firstRight < secondLeft || firstLeft > secondRight ||
+                firstBottom > secondTop || firstTop < secondBottom);
     }
 
+    /**
+     * Generates a random coordinate within world bounds centered at zero.
+     */
     public static int randomCoord(int bound) {
         return random.nextInt(bound) - (bound / 2);
     }

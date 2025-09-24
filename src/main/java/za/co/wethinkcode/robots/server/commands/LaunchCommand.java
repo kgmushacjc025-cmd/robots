@@ -2,18 +2,31 @@ package za.co.wethinkcode.robots.server.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import za.co.wethinkcode.robots.server.world.Robot;
 import za.co.wethinkcode.robots.server.world.World;
 
 import java.util.Map;
 
+/**
+ * Handles the "launch" command for a robot.
+ * Launches a new robot into the world with a specified make and name.
+ * Checks for name collisions and world capacity.
+ * Responds with an ErrorResponse if something goes wrong.
+ */
 public class LaunchCommand extends ClientCommands {
     private final JsonNode arguments;
     private final String robotName;
     private final ObjectMapper mapper;
 
+    /**
+     * Constructor for LaunchCommand.
+     *
+     * @param robotName  the name of the robot being launched (from arguments)
+     * @param arguments  JSON array containing [make, name]
+     * @param gameWorld  reference to the game world
+     */
     public LaunchCommand(String robotName, JsonNode arguments, World gameWorld) {
         super(arguments.get(1).asText(), gameWorld);
         this.arguments = arguments;
@@ -21,6 +34,13 @@ public class LaunchCommand extends ClientCommands {
         this.mapper = new ObjectMapper();
     }
 
+    /**
+     * Executes the launch command.
+     * Creates a new Robot and adds it to the world if possible.
+     * Returns detailed JSON response with robot state and stats.
+     *
+     * @return JSON node representing success or error
+     */
     @Override
     public JsonNode execute() {
         World world = getWorld();

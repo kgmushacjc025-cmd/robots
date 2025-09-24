@@ -4,15 +4,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import za.co.wethinkcode.robots.server.world.World;
 
+/**
+ * Base class for all client commands.
+ * Handles common fields like robot name, arguments, and world reference.
+ * Also contains a factory method to create commands from JSON requests.
+ */
 public abstract class ClientCommands implements Command {
     private String argument;
     private final ObjectMapper mapper;
     private final World gameWorld;
     private final String robotName;
 
+    /** Execute the command and return a JSON response */
     public abstract JsonNode execute();
 
-    // Constructor for commands without arguments
+    /** Constructor for commands with no arguments */
     public ClientCommands(String robotName, World gameWorld) {
         this.argument = "";
         this.mapper = new ObjectMapper();
@@ -20,29 +26,39 @@ public abstract class ClientCommands implements Command {
         this.robotName = robotName;
     }
 
-    // Constructor for commands with arguments
+    /** Constructor for commands with arguments */
     public ClientCommands(String robotName, String argument, World gameWorld) {
         this(robotName, gameWorld);
-        // Safely handle null arguments
+        // safely handle null arguments
         this.argument = (argument == null ? "" : argument.trim());
     }
 
+    /** Get the argument string */
     public String getArgument() {
         return this.argument;
     }
 
+    /** Get the ObjectMapper for building JSON responses */
     protected ObjectMapper getMapper() {
         return this.mapper;
     }
 
+    /** Get reference to the game world */
     protected World getWorld() {
         return this.gameWorld;
     }
 
-    // Factory method to create command objects
+    /**
+     * Factory method to create a concrete command object from a JSON request.
+     *
+     * @param request the JSON node containing "command" and optional "arguments"
+     * @param gameWorld reference to the world object
+     * @param robotName the name of the robot, null if not yet launched
+     * @return a concrete Command object or ErrorResponse if invalid
+     */
     public static Command create(JsonNode request, World gameWorld, String robotName) {
 
-        // Step 1: Validate request and command field
+        // validate request and "command" field
         if (request == null || !request.has("command") || request.get("command").isNull()) {
             return new ErrorResponse(
                     "Missing or invalid 'command' field. " +
@@ -55,7 +71,7 @@ public abstract class ClientCommands implements Command {
         String command = request.get("command").asText().toLowerCase();
         JsonNode arguments = request.has("arguments") ? request.get("arguments") : null;
 
-        // Step 2: Validate robot launch state
+        // check robot launch state
         if (robotName == null &&
                 !command.equals("launch") &&
                 !command.equals("quit") &&
@@ -75,7 +91,6 @@ public abstract class ClientCommands implements Command {
             );
         }
 
-        // Step 3: Command switch
         switch (command) {
             case "quit":
                 return new ClientQuitCommand(robotName, gameWorld);
@@ -98,7 +113,6 @@ public abstract class ClientCommands implements Command {
             case "fire":
                 return new FireCommand(robotName, arguments, gameWorld);
 
-            // Step 4: Unknown command
             default:
                 return new ErrorResponse(
                         "Unsupported robot command: '" + command + "'. " +

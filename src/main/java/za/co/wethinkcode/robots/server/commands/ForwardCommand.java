@@ -6,15 +6,35 @@ import za.co.wethinkcode.robots.server.world.*;
 
 import java.util.List;
 
+/**
+ * Handles the "forward" command for a robot.
+ * Moves the robot forward a specified number of steps, handling obstacles, other robots,
+ * and deadly pits. Can also be used in reverse mode to move backward.
+ */
 public class ForwardCommand extends ClientCommands {
     private final String robotName;
     private final JsonNode arguments;
     private final boolean reverse;
 
+    /**
+     * ForwardCommand with default forward movement.
+     *
+     * @param robotName the name of the robot
+     * @param arguments optional arguments (steps)
+     * @param gameWorld reference to the world
+     */
     public ForwardCommand(String robotName, JsonNode arguments, World gameWorld) {
         this(robotName, arguments, gameWorld, false);
     }
 
+    /**
+     * ForwardCommand with reverse option.
+     *
+     * @param robotName the name of the robot
+     * @param arguments optional arguments (steps)
+     * @param gameWorld reference to the world
+     * @param reverse if true, moves robot backward
+     */
     public ForwardCommand(String robotName, JsonNode arguments, World gameWorld, boolean reverse) {
         super(robotName, gameWorld);
         this.robotName = robotName;
@@ -22,6 +42,12 @@ public class ForwardCommand extends ClientCommands {
         this.reverse = reverse;
     }
 
+    /**
+     * Executes the forward or backward movement command.
+     * Validates path, handles collisions, updates robot position and state, and returns result.
+     *
+     * @return JSON node with movement result, steps taken, and updated state
+     */
     @Override
     public JsonNode execute() {
         Robot robot = getWorld().getRobot(robotName);
@@ -38,13 +64,12 @@ public class ForwardCommand extends ClientCommands {
             delta[1] = -delta[1];
         }
 
-        // Pre-validate path for non-lethal blocks
         PathCheckResult check = validatePath(robot, steps, delta[0], delta[1]);
         if (!check.valid) {
             return buildResponse(robot, 0, friendlyOutcome(check.outcome));
         }
 
-        // Actual movement — deadly obstacles are applied here
+        // actual movement
         int currentX = robot.getX();
         int currentY = robot.getY();
         int stepsTaken = 0;
@@ -57,7 +82,6 @@ public class ForwardCommand extends ClientCommands {
             int nextX = currentX + delta[0];
             int nextY = currentY + delta[1];
 
-            // Check deadly obstacles
             boolean fell = obstacles.stream()
                     .anyMatch(o -> o.blocksPosition(nextX, nextY) && o.canKillYou());
             if (fell) {
@@ -68,7 +92,6 @@ public class ForwardCommand extends ClientCommands {
                 break;
             }
 
-            // Other robots (ignore dead robots)
             boolean blockedByRobot = robots.stream()
                     .anyMatch(r -> !r.getName().equalsIgnoreCase(robotName)
                             && !"DEAD".equals(r.getStatus())
@@ -78,13 +101,11 @@ public class ForwardCommand extends ClientCommands {
                 break;
             }
 
-            // Valid step
             currentX = nextX;
             currentY = nextY;
             stepsTaken++;
         }
 
-        // Apply final position if not dead
         if (!"fell".equals(outcome)) {
             robot.setPosition(currentX, currentY);
         }
@@ -92,6 +113,11 @@ public class ForwardCommand extends ClientCommands {
         return buildResponse(robot, stepsTaken, friendlyOutcome(outcome));
     }
 
+    /**
+     * Parses the number of steps from command arguments.
+     *
+     * @return number of steps to move; -1 if invalid
+     */
     private int parseSteps() {
         String stepsText = (arguments != null && arguments.size() > 0 && arguments.get(0) != null)
                 ? arguments.get(0).asText()
@@ -104,6 +130,12 @@ public class ForwardCommand extends ClientCommands {
         }
     }
 
+    /**
+     * Converts a direction string to x,y delta values.
+     *
+     * @param direction direction string
+     * @return int array [dx, dy] or null if unknown direction
+     */
     private int[] getDirectionDelta(String direction) {
         if (direction == null) return null;
         switch (direction.toUpperCase()) {
@@ -115,7 +147,15 @@ public class ForwardCommand extends ClientCommands {
         }
     }
 
-    // Pre-validation for path: world bounds & solid obstacles
+    /**
+     * Pre-validates path for obstacles and world boundaries.
+     *
+     * @param robot the robot
+     * @param steps number of steps to move
+     * @param dx delta X
+     * @param dy delta Y
+     * @return PathCheckResult indicating validity
+     */
     private PathCheckResult validatePath(Robot robot, int steps, int dx, int dy) {
         int currentX = robot.getX();
         int currentY = robot.getY();
@@ -144,11 +184,17 @@ public class ForwardCommand extends ClientCommands {
         return new PathCheckResult(true, "success", currentX, currentY);
     }
 
+    /**
+     * Checks if position is blocked by a solid obstacle.
+     */
     private boolean blockedByObstacle(int x, int y, List<Obstacle> obstacles) {
         return obstacles.stream()
                 .anyMatch(o -> o.blocksPosition(x, y) && !o.canWalkThrough());
     }
 
+    /**
+     * Converts raw outcome string to user-friendly message.
+     */
     private String friendlyOutcome(String outcome) {
         switch (outcome) {
             case "outside": return "Cannot move: would leave the world";
@@ -160,6 +206,9 @@ public class ForwardCommand extends ClientCommands {
         }
     }
 
+    /**
+     * Builds the JSON response after movement.
+     */
     private JsonNode buildResponse(Robot robot, int stepsTaken, String outcome) {
         ObjectNode response = getMapper().createObjectNode();
         response.put("result", "OK");
@@ -182,6 +231,9 @@ public class ForwardCommand extends ClientCommands {
         return response;
     }
 
+    /**
+     * Creates a standard error response JSON.
+     */
     private JsonNode makeErrorResponse(String message) {
         ObjectNode response = getMapper().createObjectNode();
         response.put("result", "error");
@@ -189,6 +241,9 @@ public class ForwardCommand extends ClientCommands {
         return response;
     }
 
+    /**
+     * Helper class for path validation results.
+     */
     private static class PathCheckResult {
         boolean valid;
         String outcome;
