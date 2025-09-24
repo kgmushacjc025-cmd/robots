@@ -39,6 +39,7 @@ public class RightCommand extends ClientCommands {
         result.put("result", "OK");
 
         ObjectNode data = result.putObject("data");
+        data.put("oldDirection", currentDir);
         data.put("turn", "right");
         data.put("newDirection", newDir);
 

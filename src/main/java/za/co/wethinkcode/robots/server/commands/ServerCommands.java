@@ -47,7 +47,8 @@ public abstract class ServerCommands implements Command {
                 case "dump":
                     return new DumpCommand(gameWorld);
                 default:
-                    return new ErrorResponse("Unsupported server command: "+command, gameWorld);
+                    return new ErrorResponse("Unsupported server command: "+command + "'. " +
+                            "Valid server commands are: robots, quit, dump.", gameWorld);
             }
 
         } catch (Exception e) {

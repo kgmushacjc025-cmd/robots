@@ -39,6 +39,7 @@ public class LeftCommand extends ClientCommands {
         result.put("result", "OK");
 
         ObjectNode data = result.putObject("data");
+        data.put("oldDirection", currentDir);
         data.put("turn", "left");
         data.put("newDirection", newDir);
 

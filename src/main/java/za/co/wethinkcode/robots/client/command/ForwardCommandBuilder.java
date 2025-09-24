@@ -10,7 +10,7 @@ public class ForwardCommandBuilder {
 
     public JsonNode build(String[] parts) {
         if (parts.length > 2) {
-            return createErrorResponse("Usage: forward [<steps>]");
+            return new ErrorState("Usage: forward [<steps>]").toJson();
         }
         ObjectNode request = mapper.createObjectNode();
         request.put("command", "forward");
@@ -19,16 +19,9 @@ public class ForwardCommandBuilder {
             int steps = parts.length == 2 ? Integer.parseInt(parts[1]) : 1;
             arguments.add(steps);
         } catch (NumberFormatException e) {
-            return createErrorResponse("Invalid number format for steps");
+            return new ErrorState("Invalid number format for steps").toJson();
         }
         request.set("arguments", arguments);
         return request;
-    }
-
-    private JsonNode createErrorResponse(String message) {
-        ObjectNode response = mapper.createObjectNode();
-        response.put("result", "ERROR");
-        response.putObject("data").put("message", message);
-        return response;
     }
 }

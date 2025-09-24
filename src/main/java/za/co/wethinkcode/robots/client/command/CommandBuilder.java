@@ -15,7 +15,7 @@ public class CommandBuilder {
     public JsonNode buildCommand(String input) {
         String[] parts = input.trim().split("\\s+");
         if (parts.length == 0) {
-            return createErrorResponse("Empty command");
+            return new ErrorState("Empty command").toJson();
         }
 
         String command = parts[0].toLowerCase();
@@ -25,8 +25,8 @@ public class CommandBuilder {
         try {
             switch (command) {
                 case "launch":
-                    if (parts.length != 3 ) {
-                        return createErrorResponse("Usage: launch <make> <name>");
+                    if (parts.length != 3) {
+                        return new ErrorState("Usage: launch <make> <name>").toJson();
                     }
                     request.put("robot", parts[2]);
                     request.put("command", "launch");
@@ -39,14 +39,14 @@ public class CommandBuilder {
                         ForwardCommandBuilder forwardBuilder = new ForwardCommandBuilder();
                         return forwardBuilder.build(parts);
                     }
-                    return createErrorResponse("Usage: forward <steps>");
+                    return new ErrorState("Usage: forward <steps>").toJson();
 
                 case "back":
                     if (parts.length == 2) {
                         BackCommandBuilder backBuilder = new BackCommandBuilder();
                         return backBuilder.build(parts);
                     }
-                    return createErrorResponse("Usage: back <steps>");
+                    return new ErrorState("Usage: back <steps>").toJson();
 
                 case "left":
                     LeftCommandBuilder leftBuilder = new LeftCommandBuilder();
@@ -63,28 +63,21 @@ public class CommandBuilder {
                 case "help":
                 case "fire":
                     if (parts.length != 1) {
-                        return createErrorResponse("Usage: " + command);
+                        return new ErrorState("Usage: " + command).toJson();
                     }
                     request.put("command", command);
                     break;
 
                 default:
-                    return createErrorResponse(
-                            "Unknown command: '" + command + "'. If you're unsure what to do, type 'help' to see a list of available commands."
-                    );
+                    return new ErrorState(
+                            "Unknown command: '" + command
+                    ).toJson();
             }
 
             request.set("arguments", arguments);
             return request;
         } catch (NumberFormatException e) {
-            return createErrorResponse("Invalid number format");
+            return new ErrorState("Invalid number format").toJson();
         }
-    }
-
-    private JsonNode createErrorResponse(String message) {
-        ObjectNode response = mapper.createObjectNode();
-        response.put("result", "ERROR");
-        response.putObject("data").put("message", message);
-        return response;
     }
 }

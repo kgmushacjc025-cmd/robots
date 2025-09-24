@@ -34,23 +34,13 @@ public class LaunchCommand extends ClientCommands {
                 .orElse(null);
 
         if (make == null) {
-            // Invalid make -> build error response with list of available makes
-            ObjectNode errorResponse = mapper.createObjectNode();
-            errorResponse.put("result", "ERROR");
-            errorResponse.put("message", "Unknown make: " + make + ". Use: launch <make> <name>");
-
-            ArrayNode makesArray = mapper.createArrayNode();
-            makes.forEach((name, stats) -> {
-                ObjectNode makeInfo = mapper.createObjectNode();
-                makeInfo.put("make", name);
-                makeInfo.put("shots", stats[0]);
-                makeInfo.put("shields", stats[1]);
-                makeInfo.put("maxshot", stats[2]);
-                makesArray.add(makeInfo);
-            });
-
-            errorResponse.set("available_makes", makesArray);
-            return errorResponse;
+            // Unknown make -> ErrorResponse with available makes
+            return new ErrorResponse(
+                    "Unknown make: " + makeInput + ". Use: launch <make> <name>",
+                    robotName,
+                    world,
+                    makes
+            ).execute();
         }
 
         int[] stats = makes.get(make);
@@ -61,28 +51,41 @@ public class LaunchCommand extends ClientCommands {
         // Build Robot with values from config
         Robot robot = new Robot(robotName, make, shields, shots, maxShot);
 
+        // Check if name is already taken
         if (world.getRobot(robotName) != null) {
-            return new ErrorResponse("Name taken! Pick a new one for your robot.", robotName, world).execute();
+            return new ErrorResponse(
+                    "Name taken! Pick a new one for your robot.",
+                    robotName,
+                    world
+            ).execute();
         }
 
+        // Check if world has room
         if (!world.addRobot(robot)) {
-            return new ErrorResponse("Looks like this world is full!", robotName, world).execute();
+            return new ErrorResponse(
+                    "Looks like this world is full!",
+                    robotName,
+                    world
+            ).execute();
         }
 
         // Build success response
         ObjectNode response = mapper.createObjectNode();
         response.put("result", "OK");
+
         ObjectNode data = mapper.createObjectNode();
         data.putArray("position").add(robot.getX()).add(robot.getY());
         data.put("robotName", robotName);
-        data.put("visibility", getWorld().worldHeight());
+        data.put("visibility", world.worldHeight());
         data.put("reload", 5);
         data.put("repair", 3);
         data.put("shields", shields);
         data.put("shots", shots);
         data.put("maxshot", maxShot);
+
         response.set("data", data);
         response.set("state", new StateNode(robotName, world).execute());
+
         return response;
     }
 }
