@@ -2,10 +2,7 @@ package za.co.wethinkcode.robots.server.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import za.co.wethinkcode.robots.server.world.Obstacle;
-import za.co.wethinkcode.robots.server.world.Position;
-import za.co.wethinkcode.robots.server.world.Robot;
-import za.co.wethinkcode.robots.server.world.World;
+import za.co.wethinkcode.robots.server.world.*;
 
 import java.util.List;
 
@@ -28,67 +25,39 @@ public class ForwardCommand extends ClientCommands {
     @Override
     public JsonNode execute() {
         Robot robot = getWorld().getRobot(robotName);
-        if (robot == null) {
-            return makeErrorResponse("Robot not found.");
-        }
+        if (robot == null) return makeErrorResponse("Robot not found.");
 
-        // Parse steps (default to 1)
-        int steps;
-        String stepsText = "1";
-        if (arguments != null && arguments.size() > 0 && arguments.get(0) != null) {
-            stepsText = arguments.get(0).asText();
-        }
-        try {
-            steps = Integer.parseInt(stepsText);
-            if (steps < 0) {
-                return makeErrorResponse("Invalid number of steps (negative): " + stepsText);
-            }
-        } catch (NumberFormatException e) {
-            return makeErrorResponse("Invalid number of steps: " + stepsText);
-        }
+        int steps = parseSteps();
+        if (steps < 0) return makeErrorResponse("Invalid number of steps: " + arguments);
 
-        // Determine dx/dy based on robot direction
-        int dx = 0, dy = 0;
-        String dir = robot.getDirection() == null ? "" : robot.getDirection().toUpperCase();
-        switch (dir) {
-            case "NORTH": dy = 1; break;
-            case "SOUTH": dy = -1; break;
-            case "EAST":  dx = 1; break;
-            case "WEST":  dx = -1; break;
-            default:
-                return makeErrorResponse("Unknown direction: " + robot.getDirection());
-        }
+        int[] delta = getDirectionDelta(robot.getDirection());
+        if (delta == null) return makeErrorResponse("Unknown direction: " + robot.getDirection());
 
         if (reverse) {
-            dx = -dx;
-            dy = -dy;
+            delta[0] = -delta[0];
+            delta[1] = -delta[1];
         }
 
-        int startX = robot.getX();
-        int startY = robot.getY();
-        int currentX = startX;
-        int currentY = startY;
+        // Pre-validate path for non-lethal blocks
+        PathCheckResult check = validatePath(robot, steps, delta[0], delta[1]);
+        if (!check.valid) {
+            return buildResponse(robot, 0, friendlyOutcome(check.outcome));
+        }
 
+        // Actual movement — deadly obstacles are applied here
+        int currentX = robot.getX();
+        int currentY = robot.getY();
         int stepsTaken = 0;
         String outcome = "success";
 
         List<Robot> robots = getWorld().getRobotsInWorld();
         List<Obstacle> obstacles = getWorld().getWorldObstacles();
-        int width = getWorld().worldWidth();
-        int height = getWorld().worldHeight();
 
         for (int i = 0; i < steps; i++) {
-            int nextX = currentX + dx;
-            int nextY = currentY + dy;
-            Position nextPosition = new Position(nextX, nextY);
+            int nextX = currentX + delta[0];
+            int nextY = currentY + delta[1];
 
-            // Check world bounds
-            if (!nextPosition.isInsideWorld(width, height)) {
-                outcome = "outside";
-                break;
-            }
-
-            // Deadly obstacles (pit, lake, etc.)
+            // Check deadly obstacles
             boolean fell = obstacles.stream()
                     .anyMatch(o -> o.blocksPosition(nextX, nextY) && o.canKillYou());
             if (fell) {
@@ -96,14 +65,6 @@ public class ForwardCommand extends ClientCommands {
                 robot.setStatus("DEAD");
                 stepsTaken++;
                 outcome = "fell";
-                break;
-            }
-
-            // Solid obstacles
-            boolean blockedByObstacle = obstacles.stream()
-                    .anyMatch(o -> o.blocksPosition(nextX, nextY) && !o.canWalkThrough());
-            if (blockedByObstacle) {
-                outcome = "blocked by obstacle";
                 break;
             }
 
@@ -116,38 +77,108 @@ public class ForwardCommand extends ClientCommands {
                 break;
             }
 
-            // Valid step — advance
+            // Valid step
             currentX = nextX;
             currentY = nextY;
             stepsTaken++;
         }
 
-        // Apply final position unless robot died
+        // Apply final position if not dead
         if (!"fell".equals(outcome)) {
             robot.setPosition(currentX, currentY);
         }
 
-        // Build JSON response
-        ObjectNode result = getMapper().createObjectNode();
-        result.put("result", "OK");
+        return buildResponse(robot, stepsTaken, friendlyOutcome(outcome));
+    }
 
-        ObjectNode data = result.putObject("data");
+    private int parseSteps() {
+        String stepsText = (arguments != null && arguments.size() > 0 && arguments.get(0) != null)
+                ? arguments.get(0).asText()
+                : "1";
+        try {
+            int steps = Integer.parseInt(stepsText);
+            return steps >= 0 ? steps : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private int[] getDirectionDelta(String direction) {
+        if (direction == null) return null;
+        switch (direction.toUpperCase()) {
+            case "NORTH": return new int[]{0, 1};
+            case "SOUTH": return new int[]{0, -1};
+            case "EAST":  return new int[]{1, 0};
+            case "WEST":  return new int[]{-1, 0};
+            default: return null;
+        }
+    }
+
+    // Pre-validation for path: world bounds & solid obstacles
+    private PathCheckResult validatePath(Robot robot, int steps, int dx, int dy) {
+        int currentX = robot.getX();
+        int currentY = robot.getY();
+
+        List<Obstacle> obstacles = getWorld().getWorldObstacles();
+        int width = getWorld().worldWidth();
+        int height = getWorld().worldHeight();
+
+        for (int i = 0; i < steps; i++) {
+            int nextX = currentX + dx;
+            int nextY = currentY + dy;
+            Position nextPos = new Position(nextX, nextY);
+
+            if (!nextPos.isInsideWorld(width, height)) {
+                return new PathCheckResult(false, "outside", currentX, currentY);
+            }
+
+            if (blockedByObstacle(nextX, nextY, obstacles)) {
+                return new PathCheckResult(false, "blocked by obstacle", currentX, currentY);
+            }
+
+            currentX = nextX;
+            currentY = nextY;
+        }
+
+        return new PathCheckResult(true, "success", currentX, currentY);
+    }
+
+    private boolean blockedByObstacle(int x, int y, List<Obstacle> obstacles) {
+        return obstacles.stream()
+                .anyMatch(o -> o.blocksPosition(x, y) && !o.canWalkThrough());
+    }
+
+    private String friendlyOutcome(String outcome) {
+        switch (outcome) {
+            case "outside": return "Cannot move: would leave the world";
+            case "blocked by obstacle": return "Blocked by obstacle";
+            case "fell": return "Fell into a bottomless pit";
+            case "blocked by robot": return "Blocked by another robot";
+            case "success": return "Moved successfully";
+            default: return outcome;
+        }
+    }
+
+    private JsonNode buildResponse(Robot robot, int stepsTaken, String outcome) {
+        ObjectNode response = getMapper().createObjectNode();
+        response.put("result", "OK");
+
+        ObjectNode data = response.putObject("data");
         data.put("steps", stepsTaken);
         data.put("outcome", outcome);
 
         ObjectNode start = data.putObject("start");
-        start.put("x", startX);
-        start.put("y", startY);
+        start.put("x", robot.getX());
+        start.put("y", robot.getY());
 
         ObjectNode end = data.putObject("end");
         end.put("x", robot.getX());
         end.put("y", robot.getY());
 
         data.putArray("position").add(robot.getX()).add(robot.getY());
+        response.set("state", new StateNode(robotName, getWorld()).execute());
 
-        result.set("state", new StateNode(robotName, getWorld()).execute());
-
-        return result;
+        return response;
     }
 
     private JsonNode makeErrorResponse(String message) {
@@ -155,5 +186,19 @@ public class ForwardCommand extends ClientCommands {
         response.put("result", "error");
         response.put("message", message);
         return response;
+    }
+
+    private static class PathCheckResult {
+        boolean valid;
+        String outcome;
+        int finalX;
+        int finalY;
+
+        PathCheckResult(boolean valid, String outcome, int finalX, int finalY) {
+            this.valid = valid;
+            this.outcome = outcome;
+            this.finalX = finalX;
+            this.finalY = finalY;
+        }
     }
 }
