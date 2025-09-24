@@ -34,6 +34,9 @@ public class RobotsCommand extends ServerCommands {
      */
     @Override
     public JsonNode execute() {
+        // Remove dead robots before building the response
+        gameWorld.removeDeadRobots();
+
         ObjectNode response = mapper.createObjectNode();
         response.put("result", "OK");
 

@@ -92,6 +92,26 @@ public class World {
     }
 
     /**
+     * Removes all robots that are dead from the world.
+     */
+    public void removeDeadRobots() {
+        // Iterate over a copy of the robot list to avoid ConcurrentModificationException
+        List<Robot> deadRobots = new ArrayList<>();
+        for (Robot robot : robots) {
+            if ("DEAD".equals(robot.getStatus())) {
+                deadRobots.add(robot);
+            }
+        }
+
+        // Remove each dead robot from both the map and the list
+        for (Robot dead : deadRobots) {
+            robotsMap.remove(dead.getName());
+            robots.remove(dead);
+        }
+    }
+
+
+    /**
      * Returns a JSON representation of the world's current state, including all robots and obstacles.
      *
      * @return JsonNode representing world state.
