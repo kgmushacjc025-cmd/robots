@@ -68,9 +68,10 @@ public class ForwardCommand extends ClientCommands {
                 break;
             }
 
-            // Other robots
+            // Other robots (ignore dead robots)
             boolean blockedByRobot = robots.stream()
                     .anyMatch(r -> !r.getName().equalsIgnoreCase(robotName)
+                            && !"DEAD".equals(r.getStatus())
                             && r.getX() == nextX && r.getY() == nextY);
             if (blockedByRobot) {
                 outcome = "blocked by robot";

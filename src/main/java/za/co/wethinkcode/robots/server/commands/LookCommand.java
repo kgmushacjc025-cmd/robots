@@ -50,7 +50,6 @@ public class LookCommand extends ClientCommands {
         return response;
     }
 
-
     public List<ObjectInView> look(Robot robot) {
         List<ObjectInView> objects = new ArrayList<>();
         int x = robot.getX();
@@ -83,29 +82,29 @@ public class LookCommand extends ClientCommands {
             int newX = x + dx * distance;
             int newY = y + dy * distance;
 
-            // look out for edge
+            // Look for world edge
             if (newX < -(width / 2) || newX >= width / 2 ||
                     newY < -(height / 2) || newY >= height / 2) {
                 objects.add(new ObjectInView(direction, "EDGE", distance));
                 break;
             }
 
-            // Robots check
+            // Check robots (ignore dead ones)
             for (Robot r : robots) {
-                if (r.getX() == newX && r.getY() == newY) {
+                if (!"DEAD".equals(r.getStatus()) && r.getX() == newX && r.getY() == newY) {
                     objects.add(new ObjectInView(direction, "ROBOT", distance));
-                    return objects;
+                    return objects; // cannot see past robot
                 }
             }
 
-            // obstacle check
+            // Check obstacles
             for (Obstacle o : obstacles) {
                 if (o.blocksPosition(newX, newY)) {
                     String type = o.getType().toString();
                     String obstacleType = Obstacle.ObstacleType.fromString(type).toString();
                     objects.add(new ObjectInView(direction, obstacleType.toUpperCase(), distance));
                     if (!o.canSeePast()) {
-                        return objects;
+                        return objects; // cannot see past solid obstacle
                     }
                 }
             }

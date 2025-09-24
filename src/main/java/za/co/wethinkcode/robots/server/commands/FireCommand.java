@@ -26,22 +26,18 @@ public class FireCommand extends ClientCommands {
         int shotsToConsume = calculateShotsConsumed(maxDistance);
         int startShots = shooter.getShots();
 
-        // Check ammo BEFORE firing
         if (startShots < shotsToConsume) {
             return makeErrorResponse(
                     "Not enough shots to fire at distance " + maxDistance +
-                            " (need " + shotsToConsume + ", have " + startShots + "). " +
-                            "Please reload before firing again."
+                            " (need " + shotsToConsume + ", have " + startShots + ")."
             );
         }
 
-        // Consume shots now
         shooter.consumeShots(shotsToConsume);
 
         int startX = shooter.getX();
         int startY = shooter.getY();
 
-        // Determine bullet direction
         int dx = 0, dy = 0;
         switch (shooter.getDirection().toUpperCase()) {
             case "NORTH" -> dy = 1;
@@ -58,7 +54,9 @@ public class FireCommand extends ClientCommands {
         int hitX = x;
         int hitY = y;
 
-        // Simulate the shot path
+        List<Robot> robots = getWorld().getRobotsInWorld();
+
+        // Scan each coordinate along direction up to maxDistance
         for (int i = 1; i <= maxDistance; i++) {
             x += dx;
             y += dy;
@@ -66,22 +64,18 @@ public class FireCommand extends ClientCommands {
             hitX = x;
             hitY = y;
 
-            List<Robot> robots = getWorld().getRobotsInWorld();
             for (Robot target : robots) {
-                if (target != shooter && target.getX() == x && target.getY() == y) {
+                if (target != shooter && !"DEAD".equals(target.getStatus())
+                        && target.getX() == x && target.getY() == y) {
                     target.damage(shotsToConsume);
                     hit = true;
                     targetHit = target.getName();
-                    if ("DEAD".equals(target.getStatus())) {
-                        getWorld().removeOneRobot(target.getName());
-                    }
                     break;
                 }
             }
             if (hit) break;
         }
 
-        // Build response JSON
         ObjectNode result = getMapper().createObjectNode();
         result.put("result", "OK");
 
@@ -112,7 +106,7 @@ public class FireCommand extends ClientCommands {
             case 3 -> 3;
             case 2 -> 4;
             case 1 -> 5;
-            default -> 0; // cannot fire if 0
+            default -> 0;
         };
     }
 

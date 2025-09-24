@@ -15,7 +15,6 @@ public class Position {
     public int getX() { return x; }
     public int getY() { return y; }
 
-
     public boolean isInsideWorld(int width, int height) {
         return !(this.x < -(width / 2) || this.x > width / 2 ||
                 this.y < -(height / 2) || this.y > height / 2);
@@ -45,10 +44,10 @@ public class Position {
             }
         }
 
-        // Robots: position is invalid if any robot already occupies it
+        // Robots: position is invalid if any **alive** robot occupies it
         if (robots != null) {
             for (Robot r : robots) {
-                if (r.getX() == x && r.getY() == y) {
+                if (!"DEAD".equals(r.getStatus()) && r.getX() == x && r.getY() == y) {
                     return false;
                 }
             }
@@ -67,7 +66,7 @@ public class Position {
 
     @Override
     public int hashCode() {
-        return Objects.hash(x,y);
+        return Objects.hash(x, y);
     }
 
     @Override
