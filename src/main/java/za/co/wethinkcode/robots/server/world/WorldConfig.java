@@ -49,17 +49,17 @@ public class WorldConfig {
 
         JsonNode worldNode = root.path("world");
         int size = worldNode.path("size").asInt();
-
-        // Load visibility, clamp to world size if necessary
         int visibility = worldNode.path("visibility").asInt(20); // default 20
         if (visibility > size) {
             visibility = size;
         }
+        int repairTime = worldNode.path("repairTime").asInt(3); // default 3
+        int reloadTime = worldNode.path("reloadTime").asInt(5); // default 5
+        int shields = worldNode.path("shields").asInt(15); // default 15
+        int shots = worldNode.path("shots").asInt(15); // default 15
+        int maxshot = 5; // Always set to 5 as per requirement
 
-        int repairTime = worldNode.path("repairTime").asInt(3);  // default 3
-        int reloadTime = worldNode.path("reloadTime").asInt(5);  // default 5
-
-        Map<String, int[]> makes = parseMakes(root.path("makes"));
+        Map<String, int[]> makes = parseMakes(root.path("makes"), shields, shots, maxshot);
         List<Obstacle> obstacles = parseObstacles(root.path("obstacles"), size);
 
         return new WorldConfig(size, visibility, repairTime, reloadTime, makes, obstacles);
@@ -67,17 +67,27 @@ public class WorldConfig {
 
     /**
      * Parses the "makes" JSON node into a map of make names to stats array.
+     * Ensures shots, shields, and maxshot do not exceed world limits.
      *
      * @param makesNode JSON node containing makes
+     * @param worldShields Maximum shields allowed in the world
+     * @param worldShots Maximum shots allowed in the world
+     * @param worldMaxshot Maximum maxshot allowed in the world
      * @return Map where key = make name, value = [shots, shields, maxshot]
      */
-    private static Map<String, int[]> parseMakes(JsonNode makesNode) {
+    private static Map<String, int[]> parseMakes(JsonNode makesNode, int worldShields, int worldShots, int worldMaxshot) {
         Map<String, int[]> makes = new HashMap<>();
         makesNode.fieldNames().forEachRemaining(makeName -> {
             JsonNode makeData = makesNode.get(makeName);
             int shots = makeData.path("shots").asInt();
             int shields = makeData.path("shields").asInt();
             int maxshot = makeData.path("maxshot").asInt();
+
+            // Clamp values to world limits
+            shots = Math.min(shots, worldShots);
+            shields = Math.min(shields, worldShields);
+            maxshot = Math.min(maxshot, worldMaxshot);
+
             makes.put(makeName, new int[]{shots, shields, maxshot});
         });
         return makes;

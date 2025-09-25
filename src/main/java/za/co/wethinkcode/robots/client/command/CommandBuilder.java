@@ -49,13 +49,9 @@ public class CommandBuilder {
                     BackCommandBuilder backBuilder = new BackCommandBuilder();
                     return backBuilder.build(parts);
 
-                case "left":
-                    LeftCommandBuilder leftBuilder = new LeftCommandBuilder();
-                    return leftBuilder.build(parts);
-
-                case "right":
-                    RightCommandBuilder rightBuilder = new RightCommandBuilder();
-                    return rightBuilder.build(parts);
+                case "turn":
+                    TurnCommandBuilder turnBuilder = new TurnCommandBuilder();
+                    return turnBuilder.build(parts);
 
                 case "dump":
                 case "look":
@@ -65,6 +61,7 @@ public class CommandBuilder {
                 case "fire":
                 case "reload":
                 case "repair":
+                case "orientation":
                     if (parts.length != 1) {
                         return new ErrorState("Usage: " + command).toJson();
                     }

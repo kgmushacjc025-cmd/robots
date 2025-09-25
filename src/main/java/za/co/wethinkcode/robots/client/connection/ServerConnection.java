@@ -37,6 +37,15 @@ public class ServerConnection implements AutoCloseable {
         this.commandBuilder = new CommandBuilder();
     }
 
+    // test constructor - inject mocks
+    public ServerConnection(Socket socket, CommandBuilder builder, BufferedReader in, PrintWriter out) {
+        this.socket = socket;
+        this.commandBuilder = builder;
+        this.in = in;
+        this.out = out;
+        this.mapper = new ObjectMapper();
+    }
+
     /**
      * take user input -> build command -> send to server -> return formatted response
      */
@@ -63,7 +72,7 @@ public class ServerConnection implements AutoCloseable {
      * format the response from server
      * splits into smaller helpers so its not one long mess
      */
-    private String formatResponse(JsonNode response) {
+    public String formatResponse(JsonNode response) {
         ObjectNode resultNode = mapper.createObjectNode();
 
         addResultInfo(response, resultNode);
@@ -78,7 +87,6 @@ public class ServerConnection implements AutoCloseable {
         }
     }
 
-    // --- helper methods ---
 
     /**
      * adds the main "Result" info from server response
@@ -174,7 +182,6 @@ public class ServerConnection implements AutoCloseable {
         resultNode.set("State", stateNode);
     }
 
-    // --- smaller helpers for Data section ---
 
     /** adds each robot in "robots" array from server */
     private void addRobots(JsonNode data, ObjectNode dataNode) {

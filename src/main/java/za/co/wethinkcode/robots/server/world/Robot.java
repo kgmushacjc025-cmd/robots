@@ -98,8 +98,6 @@ public class Robot {
     public void setDirection(String direction) { this.direction = direction; }
     public void setPosition(int x, int y) { this.x = x; this.y = y; }
     public void setStatus(String status) { this.status = status; }
-
-    // New setters for reload and repair times
     public void setReloadTime(int reloadTime) { this.reloadTime = reloadTime; }
     public void setRepairTime(int repairTime) { this.repairTime = repairTime; }
 }

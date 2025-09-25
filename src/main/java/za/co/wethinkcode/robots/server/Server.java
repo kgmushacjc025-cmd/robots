@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import za.co.wethinkcode.flow.Recorder;
 import za.co.wethinkcode.robots.server.commands.Command;
 import za.co.wethinkcode.robots.server.commands.ServerCommands;
 import za.co.wethinkcode.robots.server.networking.ClientHandler;
@@ -24,7 +25,6 @@ import za.co.wethinkcode.robots.server.world.WorldConfig;
 
 /**
  * Robot World Server.
- * <p>
  * Responsibilities:
  * 1. Parse command-line arguments for port and config path.
  * 2. Load world configuration.
@@ -93,7 +93,7 @@ public class Server {
      * @return Absolute path to the config file.
      * @throws IOException If config file cannot be found.
      */
-    private static String resolveConfigPath(String userSuppliedPath) throws IOException {
+    static String resolveConfigPath(String userSuppliedPath) throws IOException {
         String path;
 
         path = checkUserPath(userSuppliedPath);
@@ -111,7 +111,7 @@ public class Server {
         throw new FileNotFoundException("Could not find Config.json in working directory, source folder, or classpath.");
     }
 
-    private static String checkUserPath(String userPath) throws FileNotFoundException {
+    static String checkUserPath(String userPath) throws FileNotFoundException {
         if (userPath != null && !userPath.isBlank()) {
             File userFile = new File(userPath);
             if (userFile.exists()) {
@@ -123,7 +123,7 @@ public class Server {
         return null;
     }
 
-    private static String checkWorkingDirectory() {
+    static String checkWorkingDirectory() {
         File cwd = new File(".");
         File[] matches = cwd.listFiles((dir, name) -> name.equalsIgnoreCase("Config.json"));
         if (matches != null && matches.length > 0) {
@@ -133,7 +133,7 @@ public class Server {
         return null;
     }
 
-    private static String checkSourceFolder() {
+    static String checkSourceFolder() {
         File sourceConfig = new File("src/main/java/za/co/wethinkcode/robots/server/world/Config.json");
         if (sourceConfig.exists()) {
             System.out.println("Found Config.json in source folder.");
@@ -142,7 +142,7 @@ public class Server {
         return null;
     }
 
-    private static String checkClasspath() {
+    static String checkClasspath() {
         var resource = Server.class.getClassLoader()
                 .getResource("za/co/wethinkcode/robots/server/world/Config.json");
         if (resource != null) {
@@ -188,11 +188,15 @@ public class Server {
      * @param input Raw console input.
      * @return JSON request node.
      */
-    private static JsonNode createServerCommandRequest(String input) {
+    static JsonNode createServerCommandRequest(String input) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode request = mapper.createObjectNode();
         request.put("command", input.toLowerCase());
         request.set("arguments", mapper.createArrayNode());
         return request;
+    }
+
+    static {
+        new Recorder().logRun();
     }
 }

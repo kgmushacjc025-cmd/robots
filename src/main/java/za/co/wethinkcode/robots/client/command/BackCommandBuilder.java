@@ -17,7 +17,7 @@ public class BackCommandBuilder {
      * @param parts user input split by spaces
      */
     public JsonNode build(String[] parts) {
-        if (parts.length > 2) {
+        if (parts.length != 2) {
             return new ErrorState("Usage: back [<steps>]").toJson();
         }
 
@@ -26,7 +26,7 @@ public class BackCommandBuilder {
         ArrayNode arguments = mapper.createArrayNode();
 
         try {
-            int steps = parts.length == 2 ? Integer.parseInt(parts[1]) : 1;
+            int steps = Integer.parseInt(parts[1]) ;
             arguments.add(steps);
         } catch (NumberFormatException e) {
             return new ErrorState("Invalid number format for steps").toJson();

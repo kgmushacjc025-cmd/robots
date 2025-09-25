@@ -41,21 +41,35 @@ public class HelpCommand extends ClientCommands {
         commands.addObject()
                 .put("command", "launch <make> <name>")
                 .put("description", "Launch a new robot into the world. (Required before using other commands)");
-        commands.addObject().put("command", "forward <steps>")
+        commands.addObject()
+                .put("command", "forward <steps>")
                 .put("description", "Move the robot forward by the given number of steps.");
-        commands.addObject().put("command", "back <steps>")
+        commands.addObject()
+                .put("command", "back <steps>")
                 .put("description", "Move the robot backward by the given number of steps.");
-        commands.addObject().put("command", "left")
-                .put("description", "Turn the robot 90° left.");
-        commands.addObject().put("command", "right")
-                .put("description", "Turn the robot 90° right.");
-        commands.addObject().put("command", "look")
+        commands.addObject()
+                .put("command", "turn <left|right>")
+                .put("description", "Turn the robot 90° left or right.");
+        commands.addObject()
+                .put("command", "look")
                 .put("description", "Scan the world and return visible objects.");
-        commands.addObject().put("command", "state")
+        commands.addObject()
+                .put("command", "state")
                 .put("description", "Return the current state of the robot.");
-        commands.addObject().put("command", "fire")
+        commands.addObject()
+                .put("command", "fire")
                 .put("description", "Fire the robot's gun in the direction it is facing.");
-        commands.addObject().put("command", "quit")
+        commands.addObject()
+                .put("command", "repair")
+                .put("description", "Repair the robot's shields to maximum after a cooldown period in seconds.");
+        commands.addObject()
+                .put("command", "reload")
+                .put("description", "Reload the robot's shots to maximum after a cooldown period in seconds.");
+        commands.addObject()
+                .put("command", "orientation")
+                .put("description", "Return the current direction of the robot.");
+        commands.addObject()
+                .put("command", "quit")
                 .put("description", "Remove the robot from the world and disconnect.");
 
         data.put("message", "Available commands:");

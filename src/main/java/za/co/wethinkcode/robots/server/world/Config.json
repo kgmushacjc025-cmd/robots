@@ -3,7 +3,10 @@
     "size": 20,
     "visibility": 20,
     "repairTime": 3,
-    "reloadTime": 5
+    "reloadTime": 5,
+    "shields": 15,
+    "shots": 15,
+    "maxshot": 5
   },
   "makes": {
     "Sniper": {
@@ -37,10 +40,10 @@
         "size": 3,
         "positions": [
           {
-            "topLeft":    { "x": -4, "y": 5 },
-            "topRight":   { "x": -1, "y": 5 },
+            "topLeft": { "x": -4, "y": 5 },
+            "topRight": { "x": -1, "y": 5 },
             "bottomLeft": { "x": -4, "y": 2 },
-            "bottomRight":{ "x": -1, "y": 2 }
+            "bottomRight": { "x": -1, "y": 2 }
           }
         ]
       },
@@ -50,16 +53,16 @@
         "size": 2,
         "positions": [
           {
-            "topLeft":    { "x": 1,  "y": -1 },
-            "topRight":   { "x": 3,  "y": -1 },
-            "bottomLeft": { "x": 1,  "y": -3 },
-            "bottomRight":{ "x": 3,  "y": -3 }
+            "topLeft": { "x": 1, "y": -1 },
+            "topRight": { "x": 3, "y": -1 },
+            "bottomLeft": { "x": 1, "y": -3 },
+            "bottomRight": { "x": 3, "y": -3 }
           },
           {
-            "topLeft":    { "x": -6, "y": -4 },
-            "topRight":   { "x": -4, "y": -4 },
+            "topLeft": { "x": -6, "y": -4 },
+            "topRight": { "x": -4, "y": -4 },
             "bottomLeft": { "x": -6, "y": -6 },
-            "bottomRight":{ "x": -4, "y": -6 }
+            "bottomRight": { "x": -4, "y": -6 }
           }
         ]
       }

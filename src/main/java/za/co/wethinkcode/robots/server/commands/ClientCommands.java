@@ -102,8 +102,20 @@ public abstract class ClientCommands implements Command {
             case "launch" -> new LaunchCommand(robotName, arguments, gameWorld);
             case "forward" -> new ForwardCommand(robotName, arguments, gameWorld);
             case "back" -> new BackCommand(robotName, arguments, gameWorld);
-            case "left" -> new LeftCommand(robotName, arguments, gameWorld);
-            case "right" -> new RightCommand(robotName, arguments, gameWorld);
+            case "turn" -> {
+                if (arguments == null || !arguments.isArray() || arguments.size() < 1 || !arguments.get(0).isTextual()) {
+                    yield new ErrorResponse("Usage: turn <left|right>", robotName, gameWorld);
+                }
+                String direction = arguments.get(0).asText().toLowerCase();
+                if (direction.equals("left")) {
+                    yield new LeftCommand(robotName, null, gameWorld);
+                } else if (direction.equals("right")) {
+                    yield new RightCommand(robotName, null, gameWorld);
+                } else {
+                    yield new ErrorResponse("Invalid direction: '" + direction + "'", robotName, gameWorld);
+                }
+            }
+            case "orientation" -> new OrientationCommand(robotName, gameWorld);
             case "help" -> new HelpCommand(robotName, gameWorld);
             case "fire" -> new FireCommand(robotName, arguments, gameWorld);
             case "repair" -> new RepairCommand(robotName, gameWorld);
